@@ -5,6 +5,9 @@ TagManager:
   serializedVersion: 2
   tags:
   - Ground
+  - Background
+  - Collectible
+  - Enemy
   layers:
   - Default
   - TransparentFX
@@ -14,9 +17,9 @@ TagManager:
   - UI
   - 
   - 
-  - 
-  - 
-  - 
+  - Background
+  - Characters
+  - Ground
   - 
   - 
   - 
@@ -39,6 +42,15 @@ TagManager:
   - 
   - 
   m_SortingLayers:
+  - name: Background
+    uniqueID: 3440192867
+    locked: 0
+  - name: Ground
+    uniqueID: 1832600795
+    locked: 0
+  - name: Characters
+    uniqueID: 1286743799
+    locked: 0
   - name: Default
     uniqueID: 0
     locked: 0
