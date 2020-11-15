@@ -8,31 +8,32 @@ public class PlayerController2D : MonoBehaviour
     private Animator animator;
     private Rigidbody2D rb2d;
     private SpriteRenderer spriteRenderer;
-    private Collider2D collider;
+    private Collider2D coll;
 
     private bool isGrounded;
-    private bool jump;
+    private bool canJump;
     private enum State { idle, running, jumping, falling, hurt }
     private State state = State.idle;
 
-    [SerializeField] private Transform groundCheck;
+    //[SerializeField] private Transform groundCheck;
     [SerializeField] private LayerMask ground;
     [SerializeField] private Text cherryText;
     [SerializeField] private float speed = 1.5f;
     [SerializeField] private float jumpForce = 5f;
     [SerializeField] private int cherries = 0;
+    [SerializeField] private float hurtForce = 5f;
 
     void Start()
     {
         animator = GetComponent<Animator>();
         rb2d = GetComponent<Rigidbody2D>();
         spriteRenderer = GetComponent<SpriteRenderer>();
-        collider = GetComponent<Collider2D>();
+        coll = GetComponent<Collider2D>();
     }
 
     private void Update()
     {
-        if (collider.IsTouchingLayers(ground))
+        if (coll.IsTouchingLayers(ground))
         {
             isGrounded = true;
         }
@@ -43,7 +44,7 @@ public class PlayerController2D : MonoBehaviour
 
         if (Input.GetButtonDown("Jump") && isGrounded)
         {
-            jump = true;
+            canJump = true;
         }
 
         AnimationState();
@@ -51,6 +52,14 @@ public class PlayerController2D : MonoBehaviour
     }
 
     private void FixedUpdate()
+    {
+        if(state != State.hurt)
+        {
+            Movement();
+        }
+    }
+
+    private void Movement()
     {
         float hDirection = Input.GetAxis("Horizontal");
 
@@ -69,12 +78,18 @@ public class PlayerController2D : MonoBehaviour
             rb2d.velocity = new Vector2(0, rb2d.velocity.y);
         }
 
-        if (jump)
+        if(canJump)
         {
-            jump = false;
-            rb2d.velocity = new Vector2(rb2d.velocity.x, jumpForce);
-            state = State.jumping;
+            canJump = false;
+            Jump();
         }
+    }
+
+    private void Jump()
+    {
+        canJump = false;
+        rb2d.velocity = new Vector2(rb2d.velocity.x, jumpForce);
+        state = State.jumping;
     }
 
     private void AnimationState()
@@ -90,6 +105,13 @@ public class PlayerController2D : MonoBehaviour
         else if(state == State.falling)
         {
             if(isGrounded)
+            {
+                state = State.idle;
+            }
+        }
+        else if (state == State.hurt)
+        {
+            if (Mathf.Abs(rb2d.velocity.x) < 0.1f)
             {
                 state = State.idle;
             }
@@ -116,9 +138,25 @@ public class PlayerController2D : MonoBehaviour
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        if(collision.otherCollider.tag == "Enemy")
+        if(collision.gameObject.tag == "Enemy")
         {
-            Destroy(collision.gameObject);
+            if(state == State.falling)
+            {
+                Destroy(collision.gameObject);
+                Jump();
+            }
+            else
+            {
+                state = State.hurt;
+                if(collision.gameObject.transform.position.x > transform.position.x)
+                {
+                    rb2d.velocity = new Vector2(-hurtForce, rb2d.velocity.y);
+                }
+                else
+                {
+                    rb2d.velocity = new Vector2(hurtForce, rb2d.velocity.y);
+                }
+            }
         }
     }
 }
